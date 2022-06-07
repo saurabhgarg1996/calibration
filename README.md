@@ -1,6 +1,6 @@
 # Calibration Library
 
-This repository contains library code to measure the calibration error of models from paper [On Calibration of Modern Neural Networks](https://arxiv.org/abs/1706.04599). We implement temperature scaling and vector scaling motivated from code [here](https://github.com/gpleiss/temperature_scaling). 
+This repository contains library code to measure the calibration error of models from paper [On Calibration of Modern Neural Networks](https://arxiv.org/abs/1706.04599). We implement temperature scaling and vector scaling motivated from code [here](https://github.com/gpleiss/temperature_scaling). Importantly, we do not need TempScaling and VectorScaling modules to be wrapper around pytorch model. Instead, we implement calibration techniques simply on numpy probability and label arrays.  
 
 ## Installation
 
