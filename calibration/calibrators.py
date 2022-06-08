@@ -11,7 +11,7 @@ def _histedges_equalN(x, nbin):
                      np.sort(x))
 
 def cross_entropy_loss(logits, labels):
-    loss = - np.sum(labels * logits)
+    loss = - np.mean(logits[np.arange(len(labels)), labels] )
     return loss
 
 
@@ -27,7 +27,7 @@ def ece_loss(probs, labels, num_bins = 10, equal_mass = False):
 
     ece  = 0.0
 
-    for i in range(bins):
+    for i in range(num_bins):
         in_bin = np.greater_equal(confidences, bins[i]) & np.less(confidences, bins[i + 1])
         prop_in_bin = np.mean(in_bin)
         if prop_in_bin > 0:
@@ -42,7 +42,7 @@ class TempScaling:
 
     def __init__(self, bias=  False):
         self.temperature = nn.Parameter(torch.ones(1) * 1.5)
-        self.bias = nn.Parameter(torch.ones(1) * 0.0) if bias else None
+        self.bias = nn.Parameter(torch.ones(1) * .0) if bias else None
 
         self.biasFlag = bias
 
@@ -93,9 +93,11 @@ class TempScaling:
             loss.backward()
             return loss
 
-        optimizer.step(eval)
+        for i in range(500):
+            optimizer.step(eval)
         
-        rescaled_probs = F.softmax(self.temperature_scale(logits)).detach().numpy()
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits)).detach().numpy()
+
         rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
 
 
@@ -112,8 +114,9 @@ class TempScaling:
     def calibrate(self, probs, eps = 1e-12):
         probs = np.clip(probs, eps, 1 - eps)
         logits = np.log(probs)
-
-        rescaled_probs = F.softmax(self.temperature_scale(logits)).detach().numpy()
+        
+        torch_logits = torch.from_numpy(logits).float()
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits)).detach().numpy()
 
         return rescaled_probs
         
@@ -133,10 +136,10 @@ class VectorScaling:
         Perform temperature scaling on logits
         """
         # Expand temperature to match the size of logits
-        temperature = self.temperature.unsqueeze(0).expand(logits.size(0), 1)
+        temperature = self.temperature.unsqueeze(0).expand(logits.size(0), -1)
 
         if self.biasFlag: 
-            bias = self.bias.unsqueeze(0).expand(logits.size(0), 1)
+            bias = self.bias.unsqueeze(0).expand(logits.size(0), -1)
             return logits / temperature + bias
         else:     
             return logits / temperature
@@ -172,18 +175,19 @@ class VectorScaling:
             loss.backward()
             return loss
 
-        optimizer.step(eval)
+        for i in range(500):
+            optimizer.step(eval)
         
-        rescaled_probs = F.softmax(self.temperature_scale(logits)).detach().numpy()
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits)).detach().numpy()
         rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
 
 
         # Calculate NLL and ECE after temperature scaling
         after_temperature_nll = cross_entropy_loss( np.log(rescaled_probs) , labels)
         after_temperature_ece = ece_loss( rescaled_probs,  labels)
-        print('Optimal temperature: %.3f' % self.temperature.item()) 
+        print('Optimal temperature: ', self.temperature.detach().numpy()) 
         if self.biasFlag:
-            print('Optimal bias: %.3f' % self.bias.item())
+            print('Optimal bias: ' , self.bias.detach().numpy())
 
         print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
@@ -191,7 +195,8 @@ class VectorScaling:
     def calibrate(self, probs, eps = 1e-12):
         probs = np.clip(probs, eps, 1 - eps)
         logits = np.log(probs)
-
-        rescaled_probs = F.softmax(self.temperature_scale(logits)).detach().numpy()
+        
+        torch_logits = torch.from_numpy(logits).float()
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits)).detach().numpy()
 
         return rescaled_probs
