@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="uncertainty-calibration",
+    name="calibration",
     version="1.0",
     author="Saurabh Garg",
     author_email="garg.saurabh.2014@gmail.com",
