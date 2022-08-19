@@ -47,8 +47,8 @@ class TempScaling:
         else: 
             self.device = torch.device('cpu')
 
-        self.temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
-        self.bias = nn.Parameter(torch.ones(1) * .0).to(device) if bias else None
+        self.temperature = nn.Parameter(torch.ones(1).to(device) * 1.5)
+        self.bias = nn.Parameter(torch.ones(1).to(device) * .0) if bias else None
 
         self.biasFlag = bias
         self.print_verbose = print_verbose
@@ -141,8 +141,8 @@ class VectorScaling:
         else: 
             self.device = torch.device('cpu')
 
-        self.temperature = nn.Parameter(torch.ones(num_label) * 1.5, requires_grad=True).to(self.device)
-        self.bias = nn.Parameter(torch.ones(num_label) * 0.0, requires_grad=True).to(self.device) if bias else None
+        self.temperature = nn.Parameter(torch.ones(num_label).to(self.device) * 1.5)
+        self.bias = nn.Parameter(torch.ones(num_label).to(self.device) * 0.0) if bias else None
         self.biasFlag = bias
         self.print_verbose = print_verbose
 
