@@ -101,8 +101,15 @@ class TempScaling:
             loss.backward()
             return loss
 
-        for i in range(500):
+        loss = -10.0
+        new_loss = -1.0 
+
+        while (np.abs(loss - new_loss) > 1e-6):
+            loss = new_loss
             optimizer.step(eval)
+            
+            with torch.no_grad():
+                new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels)
         
         rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
@@ -194,9 +201,18 @@ class VectorScaling:
             loss.backward()
             return loss
 
-        for i in range(500):
-            optimizer.step(eval)
         
+        loss = -10.0
+        new_loss = -1.0 
+
+        while (np.abs(loss - new_loss) > 1e-6):
+            loss = new_loss
+            optimizer.step(eval)
+            
+            with torch.no_grad():
+                new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels)
+
+
         rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
         rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
 
