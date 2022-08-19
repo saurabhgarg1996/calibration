@@ -40,9 +40,15 @@ def ece_loss(probs, labels, num_bins = 10, equal_mass = False):
 # Adapted from https://github.com/gpleiss/temperature_scaling/blob/master/temperature_scaling.py
 class TempScaling:
 
-    def __init__(self, bias=  False, print_verbose= False):
-        self.temperature = nn.Parameter(torch.ones(1) * 1.5)
-        self.bias = nn.Parameter(torch.ones(1) * .0) if bias else None
+    def __init__(self, bias=  False, device=None, print_verbose= False):
+
+        if device is not None: 
+            self.device= device
+        else: 
+            self.device = torch.device('cpu')
+
+        self.temperature = nn.Parameter(torch.ones(1) * 1.5).to(device)
+        self.bias = nn.Parameter(torch.ones(1) * .0).to(device) if bias else None
 
         self.biasFlag = bias
         self.print_verbose = print_verbose
@@ -77,8 +83,8 @@ class TempScaling:
             print('Before temperature - NLL: %.3f, ECE: %.3f' % (before_temperature_nll, before_temperature_ece))
 
 
-        torch_labels = torch.from_numpy(labels).long()
-        torch_logits = torch.from_numpy(logits).float()
+        torch_labels = torch.from_numpy(labels).long().to(self.device)
+        torch_logits = torch.from_numpy(logits).float().to(self.device)
 
         nll_criterion = nn.CrossEntropyLoss()
 
@@ -98,7 +104,7 @@ class TempScaling:
         for i in range(500):
             optimizer.step(eval)
         
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().numpy()
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
         rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
 
@@ -120,17 +126,23 @@ class TempScaling:
         probs = np.clip(probs, eps, 1 - eps)
         logits = np.log(probs)
         
-        torch_logits = torch.from_numpy(logits).float()
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().numpy()
+        torch_logits = torch.from_numpy(logits).float().to(self.device)
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
         return rescaled_probs
         
 
 class VectorScaling: 
 
-    def __init__(self, num_label, bias=  False, print_verbose= False):
-        self.temperature = nn.Parameter(torch.ones(num_label) * 1.5)
-        self.bias = nn.Parameter(torch.ones(num_label) * 0.0) if bias else None
+    def __init__(self, num_label, bias=  False, device=None, print_verbose= False):
+        
+        if device is not None: 
+            self.device= device
+        else: 
+            self.device = torch.device('cpu')
+
+        self.temperature = nn.Parameter(torch.ones(num_label) * 1.5).to(device)
+        self.bias = nn.Parameter(torch.ones(num_label) * 0.0).to(device) if bias else None
         self.biasFlag = bias
         self.print_verbose = print_verbose
 
@@ -164,8 +176,8 @@ class VectorScaling:
             print('Before temperature - NLL: %.3f, ECE: %.3f' % (before_temperature_nll, before_temperature_ece))
 
 
-        torch_labels = torch.from_numpy(labels).long()
-        torch_logits = torch.from_numpy(logits).float()
+        torch_labels = torch.from_numpy(labels).long().to(self.device)
+        torch_logits = torch.from_numpy(logits).float().to(self.device)
 
         nll_criterion = nn.CrossEntropyLoss()
 
@@ -185,7 +197,7 @@ class VectorScaling:
         for i in range(500):
             optimizer.step(eval)
         
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().numpy()
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
         rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
 
 
@@ -194,9 +206,9 @@ class VectorScaling:
         after_temperature_ece = ece_loss( rescaled_probs,  labels)
         
         if self.print_verbose:
-            print('Optimal temperature: ', self.temperature.detach().numpy()) 
+            print('Optimal temperature: ', self.temperature.detach().cpu().numpy()) 
             if self.biasFlag:
-                print('Optimal bias: ' , self.bias.detach().numpy())
+                print('Optimal bias: ' , self.bias.detach().cpu().numpy())
 
             print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
@@ -205,7 +217,7 @@ class VectorScaling:
         probs = np.clip(probs, eps, 1 - eps)
         logits = np.log(probs)
         
-        torch_logits = torch.from_numpy(logits).float()
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().numpy()
+        torch_logits = torch.from_numpy(logits).float().to(self.device)
+        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
         return rescaled_probs
