@@ -109,7 +109,7 @@ class TempScaling:
             optimizer.step(eval)
             
             with torch.no_grad():
-                new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels)
+                new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels).cpu().numpy()
         
         rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
@@ -210,7 +210,7 @@ class VectorScaling:
             optimizer.step(eval)
             
             with torch.no_grad():
-                new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels)
+                new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels).cpu().numpy()
 
 
         rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
