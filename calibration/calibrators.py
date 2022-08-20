@@ -207,6 +207,9 @@ class VectorScaling:
 
         while (np.abs(loss - new_loss) > 1e-6):
             loss = new_loss
+            if self.print_verbose:
+                print(f"Loss : {loss}")
+                
             optimizer.step(eval)
             
             with torch.no_grad():
