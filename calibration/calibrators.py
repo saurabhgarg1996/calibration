@@ -14,6 +14,10 @@ def cross_entropy_loss(logits, labels):
     loss = - np.mean(logits[np.arange(len(labels)), labels] )
     return loss
 
+def softmax(x, axis=None):
+    x = x - x.max(axis=axis, keepdims=True)
+    y = np.exp(x)
+    return y / y.sum(axis=axis, keepdims=True)
 
 def ece_loss(probs, labels, num_bins = 10, equal_mass = False): 
     predictions = np.argmax(probs, axis=1)
@@ -104,7 +108,7 @@ class TempScaling:
         loss = -10.0
         new_loss = -1.0 
 
-        while (np.abs(loss - new_loss) > 1e-6):
+        while (np.abs(loss - new_loss) > 1e-4):
             loss = new_loss
             optimizer.step(eval)
             
@@ -170,13 +174,14 @@ class VectorScaling:
             return logits * torch.exp(self.temperature)
 
 
-    def fit(self, probs, labels, eps = 1e-12):
+    def fit(self, logits, labels, eps = 1e-12):
 
-        probs = np.clip(probs, eps, 1 - eps)
-        logits = np.log(probs)
+        # probs = np.clip(probs, eps, 1 - eps)
+        # logits = np.log(probs)
 
         # First: collect all the logits and labels for the validation set   
         before_temperature_nll = cross_entropy_loss(logits, labels)
+        probs = softmax(logits, axis=-1)
         before_temperature_ece = ece_loss(probs, labels)
 
         if self.print_verbose: 
@@ -205,7 +210,7 @@ class VectorScaling:
         loss = -10.0
         new_loss = -1.0 
 
-        while (np.abs(loss - new_loss) > 1e-6):
+        while (np.abs(loss - new_loss) > 1e-4):
             loss = new_loss
             if self.print_verbose:
                 print(f"Loss : {loss}")
@@ -216,12 +221,13 @@ class VectorScaling:
                 new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels).cpu().numpy()
 
 
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
-        rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
+        torch_logits = self.temperature_scale(torch_logits)
+        rescaled_probs = F.softmax(torch_logits, dim=-1).detach().cpu().numpy()
+        # rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
 
 
         # Calculate NLL and ECE after temperature scaling
-        after_temperature_nll = cross_entropy_loss( np.log(rescaled_probs) , labels)
+        after_temperature_nll = cross_entropy_loss( torch_logits.detach().cpu().numpy() , labels)
         after_temperature_ece = ece_loss( rescaled_probs,  labels)
         
         if self.print_verbose:
@@ -232,11 +238,11 @@ class VectorScaling:
             print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-    def calibrate(self, probs, eps = 1e-12):
-        probs = np.clip(probs, eps, 1 - eps)
-        logits = np.log(probs)
+    def calibrate(self, logits, eps = 1e-12):
+        # probs = np.clip(probs, eps, 1 - eps)
+        # logits = np.log(probs)
         
         torch_logits = torch.from_numpy(logits).float().to(self.device)
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
+        # rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
-        return rescaled_probs
+        return torch_logits
