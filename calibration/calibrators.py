@@ -243,6 +243,7 @@ class VectorScaling:
         # logits = np.log(probs)
         
         torch_logits = torch.from_numpy(logits).float().to(self.device)
+        torch_logits = self.temperature_scale(torch_logits).detach().cpu().numpy()
         # rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
         return torch_logits
