@@ -65,9 +65,9 @@ class TempScaling:
 
         if self.biasFlag: 
             bias = self.bias.unsqueeze(1).expand(logits.size(0), logits.size(1))
-            return logits / temperature + bias
+            return logits  * torch.exp(self.temperature) + bias
         else:     
-            return logits / temperature
+            return logits  * torch.exp(self.temperature)
 
 
     def fit(self, probs, labels, eps = 1e-12):
@@ -165,9 +165,9 @@ class VectorScaling:
 
         if self.biasFlag: 
             bias = self.bias.unsqueeze(0).expand(logits.size(0), -1)
-            return logits / temperature + bias
+            return logits * torch.exp(self.temperature) + bias
         else:     
-            return logits / temperature
+            return logits * torch.exp(self.temperature)
 
 
     def fit(self, probs, labels, eps = 1e-12):
