@@ -32,7 +32,7 @@ calibrator.fit(model_probs, labels)
 Now whenever the model outputs a prediction, we pass it through the calibrator to produce better probabilities.
 
 ```python
-calibrated_probs = cal.calibrate(test_probs)
+calibrated_probs = calibrator.calibrate(test_probs)
 ```
 
 
