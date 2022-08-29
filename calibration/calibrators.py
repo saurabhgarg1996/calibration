@@ -74,13 +74,14 @@ class TempScaling:
             return logits  * torch.exp(self.temperature)
 
 
-    def fit(self, probs, labels, eps = 1e-12):
+    def fit(self, logits, labels, eps = 1e-12):
 
-        probs = np.clip(probs, eps, 1 - eps)
-        logits = np.log(probs)
+        # probs = np.clip(probs, eps, 1 - eps)
+        # logits = np.log(probs)
 
         # First: collect all the logits and labels for the validation set   
         before_temperature_nll = cross_entropy_loss(logits, labels)
+        probs = softmax(logits, axis=-1)
         before_temperature_ece = ece_loss(probs, labels)
         
         if self.print_verbose:
@@ -115,13 +116,12 @@ class TempScaling:
             with torch.no_grad():
                 new_loss = nll_criterion(self.temperature_scale(torch_logits), torch_labels).cpu().numpy()
         
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
-        rescaled_probs = np.clip(rescaled_probs, eps, 1 - eps)
-
+        torch_logits = self.temperature_scale(torch_logits)
+        rescaled_probs = F.softmax(torch_logits, dim=-1).detach().cpu().numpy()
 
         # Calculate NLL and ECE after temperature scaling
-        after_temperature_nll = cross_entropy_loss( np.log(rescaled_probs) , labels)
+        after_temperature_nll = cross_entropy_loss( torch_logits.detach().cpu().numpy() , labels)
         after_temperature_ece = ece_loss( rescaled_probs,  labels)
         
         if self.print_verbose: 
@@ -133,15 +133,15 @@ class TempScaling:
             print('After temperature - NLL: %.3f, ECE: %.3f' % (after_temperature_nll, after_temperature_ece))
 
 
-    def calibrate(self, probs, eps = 1e-12):
-        probs = np.clip(probs, eps, 1 - eps)
-        logits = np.log(probs)
+    def calibrate(self, logits, eps = 1e-12):
+        # probs = np.clip(probs, eps, 1 - eps)
+        # logits = np.log(probs)
         
         torch_logits = torch.from_numpy(logits).float().to(self.device)
-        rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
+        torch_logits = self.temperature_scale(torch_logits).detach().cpu().numpy()
+        # rescaled_probs = F.softmax(self.temperature_scale(torch_logits), dim=-1).detach().cpu().numpy()
 
-        return rescaled_probs
-        
+        return torch_logits 
 
 class VectorScaling: 
 

@@ -19,20 +19,20 @@ Measuring the calibration error of a model is as simple as:
 
 ```python
 import calibration as cal
-calibration_error = cal.ece_loss(model_probs, labels)
+calibration_error = cal.ece_loss(model_logits, labels)
 ```
 
 Recalibrating a model is very simple as well. Recalibration requires a small labeled dataset, on which we train a recalibrator:
 
 ```python
 calibrator = cal.TempScaling(bias=False)
-calibrator.fit(model_probs, labels)
+calibrator.fit(model_logits, labels)
 ```
 
 Now whenever the model outputs a prediction, we pass it through the calibrator to produce better probabilities.
 
 ```python
-calibrated_probs = cal.calibrate(test_probs)
+calibrated_probs = cal.calibrate(test_logits)
 ```
 
 
