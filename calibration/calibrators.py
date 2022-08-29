@@ -14,7 +14,7 @@ def cross_entropy_loss(logits, labels):
     loss = - np.mean(logits[np.arange(len(labels)), labels] )
     return loss
 
-def softmax(x, axis=None):
+def _softmax(x, axis=None):
     x = x - x.max(axis=axis, keepdims=True)
     y = np.exp(x)
     return y / y.sum(axis=axis, keepdims=True)
@@ -81,7 +81,7 @@ class TempScaling:
 
         # First: collect all the logits and labels for the validation set   
         before_temperature_nll = cross_entropy_loss(logits, labels)
-        probs = softmax(logits, axis=-1)
+        probs = _softmax(logits, axis=-1)
         before_temperature_ece = ece_loss(probs, labels)
         
         if self.print_verbose:
@@ -181,7 +181,7 @@ class VectorScaling:
 
         # First: collect all the logits and labels for the validation set   
         before_temperature_nll = cross_entropy_loss(logits, labels)
-        probs = softmax(logits, axis=-1)
+        probs = _softmax(logits, axis=-1)
         before_temperature_ece = ece_loss(probs, labels)
 
         if self.print_verbose: 
