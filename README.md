@@ -32,8 +32,8 @@ calibrator.fit(model_logits, labels)
 Now whenever the model outputs a prediction, we pass it through the calibrator to produce better probabilities.
 
 ```python
-calibrated_logits = cal.calibrate(test_logits)
-calibrated_probs = cal.softmax(calibrated_logits)
+calibrated_logits = calibrator.calibrate(test_logits)
+calibrated_probs = calibrator.softmax(calibrated_logits)
 ```
 
 
