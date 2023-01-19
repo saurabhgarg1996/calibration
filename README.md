@@ -4,6 +4,8 @@ This repository contains library code to measure the calibration error of models
 
 ## Installation
 
+Do `pip install git+https://github.com/saurabhgarg1996/calibration.git` or 
+
 ```python
 git clone https://github.com/saurabhgarg1996/calibration 
 cd calibration
