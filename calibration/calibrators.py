@@ -145,7 +145,7 @@ class TempScaling:
 
 class VectorScaling: 
 
-    def __init__(self, num_label, bias=  False, device=None, print_verbose= False):
+    def __init__(self, num_label, bias=  False, weights=None, device=None, print_verbose= False):
         
         if device is not None: 
             self.device= device
@@ -156,6 +156,7 @@ class VectorScaling:
         self.bias = nn.Parameter(torch.ones(num_label).to(self.device) * 0.0) if bias else None
         self.biasFlag = bias
         self.print_verbose = print_verbose
+        self.weights = weights
 
     def forward(self, input):
         return self.temperature_scale(input)
@@ -191,7 +192,10 @@ class VectorScaling:
         torch_labels = torch.from_numpy(labels).long().to(self.device)
         torch_logits = torch.from_numpy(logits).float().to(self.device)
 
-        nll_criterion = nn.CrossEntropyLoss()
+        if self.weights is not None:
+                nll_criterion = nn.CrossEntropyLoss(weight=self.weights)
+        else: 
+                nll_criterion = nn.CrossEntropyLoss()
 
         # Next: optimize the temperature w.r.t. NLL
         if not self.biasFlag:
