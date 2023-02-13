@@ -27,7 +27,7 @@ calibration_error = cal.ece_loss(model_logits, labels)
 Recalibrating a model is very simple as well. Recalibration requires a small labeled dataset, on which we train a recalibrator:
 
 ```python
-calibrator = cal.TempScaling(bias=False)
+calibrator = cal.TempScaling(bias=False) # cal.VectorScaling(num_label=<num_classes>, bias=True)
 calibrator.fit(model_logits, labels)
 ```
 
@@ -35,7 +35,6 @@ Now whenever the model outputs a prediction, we pass it through the calibrator t
 
 ```python
 calibrated_logits = calibrator.calibrate(test_logits)
-calibrated_probs = cal._softmax(calibrated_logits, axis=-1)
 ```
 
 
