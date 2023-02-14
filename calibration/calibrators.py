@@ -52,7 +52,7 @@ def ece_loss(probs, labels, num_bins=10, equal_mass=False):
 
 class TempScaling:
 
-    def __init__(self, num_label=None, bias=False, device=None, print_verbose=False):
+    def __init__(self, num_label=None, bias=False, device=None, print_verbose=False, weights=None):
 
         if device is not None:
             self.device = device
@@ -64,6 +64,8 @@ class TempScaling:
             assert num_label is not None, "num_label must be specified when bias is True"
             self.bias = nn.Parameter(torch.ones(
                 num_label).to(device) * .0)
+
+        self.weights = weights
 
         self.biasFlag = bias
         self.print_verbose = print_verbose
@@ -99,7 +101,10 @@ class TempScaling:
         torch_labels = torch.from_numpy(labels).long().to(self.device)
         torch_logits = torch.from_numpy(logits).float().to(self.device)
 
-        nll_criterion = nn.CrossEntropyLoss()
+        if self.weights is not None:
+            nll_criterion = nn.CrossEntropyLoss(weight=self.weights)
+        else:
+            nll_criterion = nn.CrossEntropyLoss()
 
         # Next: optimize the temperature w.r.t. NLL
         if not self.biasFlag:
