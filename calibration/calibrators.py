@@ -17,7 +17,7 @@ def cross_entropy_loss(logits, labels):
     return loss
 
 
-def _softmax(x, axis=None):
+def add_softmax(x, axis=-1):
     x = x - x.max(axis=axis, keepdims=True)
     y = np.exp(x)
     return y / y.sum(axis=axis, keepdims=True)
@@ -52,7 +52,7 @@ def ece_loss(probs, labels, num_bins=10, equal_mass=False):
 
 class TempScaling:
 
-    def __init__(self, bias=False, device=None, print_verbose=False):
+    def __init__(self, num_label=None, bias=False, device=None, print_verbose=False):
 
         if device is not None:
             self.device = device
@@ -60,8 +60,10 @@ class TempScaling:
             self.device = torch.device('cpu')
 
         self.temperature = nn.Parameter(torch.ones(1).to(device) * 1.5)
-        self.bias = nn.Parameter(torch.ones(
-            1).to(device) * .0) if bias else None
+        if bias is True:
+            assert num_label is not None, "num_label must be specified when bias is True"
+            self.bias = nn.Parameter(torch.ones(
+                num_label).to(device) * .0)
 
         self.biasFlag = bias
         self.print_verbose = print_verbose
@@ -74,13 +76,9 @@ class TempScaling:
         Perform temperature scaling on logits
         """
         # Expand temperature to match the size of logits
-        temperature = self.temperature.unsqueeze(
-            1).expand(logits.size(0), logits.size(1))
 
         if self.biasFlag:
-            bias = self.bias.unsqueeze(1).expand(
-                logits.size(0), logits.size(1))
-            return logits * torch.exp(self.temperature) + bias
+            return logits * torch.exp(self.temperature) + self.bias
         else:
             return logits * torch.exp(self.temperature)
 
@@ -91,7 +89,7 @@ class TempScaling:
 
         # First: collect all the logits and labels for the validation set
         before_temperature_nll = cross_entropy_loss(logits, labels)
-        probs = _softmax(logits, axis=-1)
+        probs = add_softmax(logits, axis=-1)
         before_temperature_ece = ece_loss(probs, labels)
 
         if self.print_verbose:
@@ -197,7 +195,7 @@ class VectorScaling:
 
         # First: collect all the logits and labels for the validation set
         before_temperature_nll = cross_entropy_loss(logits, labels)
-        probs = _softmax(logits, axis=-1)
+        probs = add_softmax(logits, axis=-1)
         before_temperature_ece = ece_loss(probs, labels)
 
         if self.print_verbose:
@@ -310,7 +308,7 @@ class MatrixScaling:
 
         # First: collect all the logits and labels for the validation set
         before_temperature_nll = cross_entropy_loss(logits, labels)
-        probs = _softmax(logits, axis=-1)
+        probs = add_softmax(logits, axis=-1)
         before_temperature_ece = ece_loss(probs, labels)
 
         if self.print_verbose:

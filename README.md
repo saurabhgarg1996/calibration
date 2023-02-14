@@ -14,10 +14,10 @@ pip install .
 
 The calibration library requires python 3.6 or higher. 
 
-
 ## Overview
 
 Measuring the calibration error of a model is as simple as:
+
 
 ```python
 import calibration as cal
@@ -35,8 +35,20 @@ Now whenever the model outputs a prediction, we pass it through the calibrator t
 
 ```python
 calibrated_logits = calibrator.calibrate(test_logits)
+calibrated_probs = calibrator.add_softmax(test_logits)
 ```
 
+## Calibartion Approaches
+
+This library implements the following calibration approaches:
+
+(i) Temperature Scaling as `cal.TempScaling(bias=False)`
+
+(ii) Bias corrected Temperature Scaling as `cal.TempScaling(bias=True, num_label=<num_classes>)`
+
+(iii) Vector Scaling as `cal.VectorScaling(num_label=<num_classes>, bias=True)`
+
+(iv) Matrix Scaling as `cal.MatrixScaling(num_label=<num_classes>, bias=True)`
 
 ## Questions, bugs, and contributions
 
