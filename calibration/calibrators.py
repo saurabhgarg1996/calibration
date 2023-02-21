@@ -283,8 +283,11 @@ class MatrixScaling:
         else:
             self.device = torch.device('cpu')
 
-        self.temperature = nn.Parameter(
-            torch.eye(num_label).to(self.device) * 1.0)
+        self.temperature_1 = nn.Parameter(
+            torch.ones(num_label).to(self.device) * 1.0)
+        self.temperature_2 = nn.Parameter(
+            torch.zeros((num_label, num_label)).to(self.device))
+
         self.bias = nn.Parameter(torch.ones(num_label).to(
             self.device) * 0.0) if bias else None
         self.biasFlag = bias
@@ -302,9 +305,10 @@ class MatrixScaling:
 
         if self.biasFlag:
             bias = self.bias.unsqueeze(0).expand(logits.size(0), -1)
-            return logits @ torch.exp(self.temperature) + bias
+            return logits @ (torch.diag(torch.exp(self.temperature_1)) + self.temperature_2) + bias
+            # return logits @ torch.exp(self.temperature) + bias
         else:
-            return logits @ torch.exp(self.temperature)
+            return logits @ (torch.diag(torch.exp(self.temperature_1)) + self.temperature_2)
 
     def fit(self, logits, labels, eps=1e-12):
 
@@ -330,16 +334,17 @@ class MatrixScaling:
 
         # Next: optimize the temperature w.r.t. NLL
         if not self.biasFlag:
-            optimizer = optim.LBFGS([self.temperature])
+            optimizer = optim.LBFGS([self.temperature_1, self.temperature_2])
 
         else:
             optimizer = optim.LBFGS(
-                [self.temperature, self.bias])
+                [self.temperature_1, self.temperature_2, self.bias])
 
         def eval():
             optimizer.zero_grad()
+            l2 = sum(p.square().sum() for p in self.temperature_2.parameters())
             loss = nll_criterion(self.temperature_scale(
-                torch_logits), torch_labels)
+                torch_logits), torch_labels) + l2*0.0001
             loss.backward()
             return loss
 
