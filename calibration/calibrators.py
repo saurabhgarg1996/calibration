@@ -342,7 +342,8 @@ class MatrixScaling:
 
         def eval():
             optimizer.zero_grad()
-            l2 = sum(p.square().sum() for p in self.temperature_2.parameters())
+            l2 = sum(p.square().sum()
+                     for p in list(self.temperature_2.parameters()))
             loss = nll_criterion(self.temperature_scale(
                 torch_logits), torch_labels) + l2*0.0001
             loss.backward()
