@@ -67,6 +67,8 @@ class TempScaling:
 
         if weights is not None:
             self.weights = weights.to(device)
+        else:
+            self.weights = None
 
         self.biasFlag = bias
         self.print_verbose = print_verbose
@@ -180,6 +182,8 @@ class VectorScaling:
 
         if weights is not None:
             self.weights = weights.to(device)
+        else:
+            self.weights = None
 
     def forward(self, input):
         return self.temperature_scale(input)
@@ -298,6 +302,8 @@ class MatrixScaling:
 
         if weights is not None:
             self.weights = weights.to(device)
+        else:
+            self.weights = None
 
     def forward(self, input):
         return self.temperature_scale(input)
