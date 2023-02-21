@@ -108,11 +108,11 @@ class TempScaling:
 
         # Next: optimize the temperature w.r.t. NLL
         if not self.biasFlag:
-            optimizer = optim.LBFGS([self.temperature], lr=0.01, max_iter=50)
+            optimizer = optim.LBFGS([self.temperature])
 
         else:
             optimizer = optim.LBFGS(
-                [self.temperature, self.bias], lr=0.01, max_iter=50)
+                [self.temperature, self.bias])
 
         def eval():
             optimizer.zero_grad()
@@ -217,11 +217,11 @@ class VectorScaling:
 
         # Next: optimize the temperature w.r.t. NLL
         if not self.biasFlag:
-            optimizer = optim.LBFGS([self.temperature], lr=0.01, max_iter=50)
+            optimizer = optim.LBFGS([self.temperature])
 
         else:
             optimizer = optim.LBFGS(
-                [self.temperature, self.bias], lr=0.01, max_iter=50)
+                [self.temperature, self.bias])
 
         def eval():
             optimizer.zero_grad()
@@ -330,11 +330,11 @@ class MatrixScaling:
 
         # Next: optimize the temperature w.r.t. NLL
         if not self.biasFlag:
-            optimizer = optim.LBFGS([self.temperature], lr=0.01, max_iter=50)
+            optimizer = optim.LBFGS([self.temperature])
 
         else:
             optimizer = optim.LBFGS(
-                [self.temperature, self.bias], lr=0.01, max_iter=50)
+                [self.temperature, self.bias])
 
         def eval():
             optimizer.zero_grad()
