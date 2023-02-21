@@ -65,7 +65,8 @@ class TempScaling:
             self.bias = nn.Parameter(torch.ones(
                 num_label).to(device) * .0)
 
-        self.weights = weights.to(device)
+        if weights is not None:
+            self.weights = weights.to(device)
 
         self.biasFlag = bias
         self.print_verbose = print_verbose
@@ -176,7 +177,9 @@ class VectorScaling:
             self.device) * 0.0) if bias else None
         self.biasFlag = bias
         self.print_verbose = print_verbose
-        self.weights = weights.to(device)
+
+        if weights is not None:
+            self.weights = weights.to(device)
 
     def forward(self, input):
         return self.temperature_scale(input)
@@ -292,7 +295,9 @@ class MatrixScaling:
             self.device) * 0.0) if bias else None
         self.biasFlag = bias
         self.print_verbose = print_verbose
-        self.weights = weights.to(device)
+
+        if weights is not None:
+            self.weights = weights.to(device)
 
     def forward(self, input):
         return self.temperature_scale(input)
