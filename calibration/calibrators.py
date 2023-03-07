@@ -355,7 +355,7 @@ class MatrixScaling:
             optimizer.zero_grad()
             l2 = self.temperature_2.square().sum()
             loss = nll_criterion(self.temperature_scale(
-                torch_logits), torch_labels) + l2*0.0001
+                torch_logits), torch_labels) #+ l2*0.0001
             loss.backward()
             return loss
 
