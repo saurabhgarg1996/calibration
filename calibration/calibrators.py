@@ -148,7 +148,7 @@ class TempScaling:
                         .numpy()
                     )
 
-            if (torch.isnan(self.temperature) or torch.isnan(self.bias)).any():
+            if (torch.isnan(self.temperature)) or (torch.isnan(self.bias)).any():
                 self.temperature = nn.Parameter(torch.ones(1).to(self.device) * 1.5)
                 if self.biasFlag is True:
                     self.bias = nn.Parameter(
@@ -291,7 +291,7 @@ class VectorScaling:
                         .numpy()
                     )
 
-            if (torch.isnan(self.temperature) or torch.isnan(self.bias)).any():
+            if (torch.isnan(self.temperature)).any() or (torch.isnan(self.bias)).any():
                 self.temperature = nn.Parameter(
                     torch.ones(self.num_label).to(self.device) * 1.5
                 )
