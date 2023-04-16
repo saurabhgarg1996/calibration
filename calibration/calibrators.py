@@ -273,7 +273,7 @@ class VectorScaling:
         new_loss = -1.0
 
         run = True
-
+        count = 0
         while run:
             while np.abs(loss - new_loss) > 1e-4:
                 loss = new_loss
@@ -299,7 +299,11 @@ class VectorScaling:
                     (torch.rand(self.num_label) * 2.0 - 1.0).to(self.device)
                 )
                 run = True
+                count += 1
             else:
+                run = False
+
+            if count > 100:
                 run = False
 
         torch_logits = self.temperature_scale(torch_logits)
