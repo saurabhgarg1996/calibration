@@ -162,7 +162,7 @@ class TempScaling:
             if count > 10:
                 run = False
 
-        print(count)
+        # print(count)
 
         torch_logits = self.temperature_scale(torch_logits)
         rescaled_probs = F.softmax(torch_logits, dim=-1).detach().cpu().numpy()
