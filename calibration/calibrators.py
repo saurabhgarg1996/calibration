@@ -149,7 +149,7 @@ class TempScaling:
 
             if (torch.isnan(self.temperature) or torch.isnan(self.bias)).any():
                 self.temperature = nn.Parameter(torch.ones(1).to(self.device) * 1.5)
-                if self.bias is True:
+                if self.biasFlag is True:
                     self.bias = nn.Parameter(
                         (torch.rand(self.num_label) * 2.0 - 1.0).to(self.device)
                     )
