@@ -159,7 +159,7 @@ class TempScaling:
             else:
                 run = False
 
-            if count > 100:
+            if count > 10:
                 run = False
 
         print(count)
@@ -303,7 +303,7 @@ class VectorScaling:
             else:
                 run = False
 
-            if count > 100:
+            if count > 10:
                 run = False
 
         torch_logits = self.temperature_scale(torch_logits)
