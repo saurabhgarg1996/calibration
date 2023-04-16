@@ -57,6 +57,7 @@ class TempScaling:
         else:
             self.device = torch.device("cpu")
 
+        self.num_label = num_label
         self.temperature = nn.Parameter(torch.ones(1).to(device) * 1.5)
         if bias is True:
             assert (
@@ -128,16 +129,33 @@ class TempScaling:
         loss = -10.0
         new_loss = -1.0
 
-        while np.abs(loss - new_loss) > 1e-4:
-            loss = new_loss
-            optimizer.step(eval)
+        # Check none values in self.bias
 
-            with torch.no_grad():
-                new_loss = (
-                    nll_criterion(self.temperature_scale(torch_logits), torch_labels)
-                    .cpu()
-                    .numpy()
-                )
+        run = True
+
+        while run:
+            while np.abs(loss - new_loss) > 1e-4:
+                loss = new_loss
+                optimizer.step(eval)
+
+                with torch.no_grad():
+                    new_loss = (
+                        nll_criterion(
+                            self.temperature_scale(torch_logits), torch_labels
+                        )
+                        .cpu()
+                        .numpy()
+                    )
+
+            if (torch.isnan(self.temperature) or torch.isnan(self.bias)).any():
+                self.temperature = nn.Parameter(torch.ones(1).to(self.device) * 1.5)
+                if self.bias is True:
+                    self.bias = nn.Parameter(
+                        (torch.rand(self.num_label) * 2.0 - 1.0).to(self.device)
+                    )
+                run = True
+            else:
+                run = False
 
         torch_logits = self.temperature_scale(torch_logits)
         rescaled_probs = F.softmax(torch_logits, dim=-1).detach().cpu().numpy()
@@ -177,6 +195,8 @@ class VectorScaling:
             self.device = device
         else:
             self.device = torch.device("cpu")
+
+        self.num_label = num_label
 
         self.temperature = nn.Parameter(torch.ones(num_label).to(self.device) * 1.5)
         self.bias = nn.Parameter((torch.rand(num_label) * 2.0 - 1.0).to(device))
@@ -245,19 +265,35 @@ class VectorScaling:
         loss = -10.0
         new_loss = -1.0
 
-        while np.abs(loss - new_loss) > 1e-4:
-            loss = new_loss
-            if self.print_verbose:
-                print(f"Loss : {loss}")
+        run = True
 
-            optimizer.step(eval)
+        while run:
+            while np.abs(loss - new_loss) > 1e-4:
+                loss = new_loss
+                if self.print_verbose:
+                    print(f"Loss : {loss}")
 
-            with torch.no_grad():
-                new_loss = (
-                    nll_criterion(self.temperature_scale(torch_logits), torch_labels)
-                    .cpu()
-                    .numpy()
+                optimizer.step(eval)
+
+                with torch.no_grad():
+                    new_loss = (
+                        nll_criterion(
+                            self.temperature_scale(torch_logits), torch_labels
+                        )
+                        .cpu()
+                        .numpy()
+                    )
+
+            if (torch.isnan(self.temperature) or torch.isnan(self.bias)).any():
+                self.temperature = nn.Parameter(
+                    torch.ones(self.num_label).to(self.device) * 1.5
                 )
+                self.bias = nn.Parameter(
+                    (torch.rand(self.num_label) * 2.0 - 1.0).to(self.device)
+                )
+                run = True
+            else:
+                run = False
 
         torch_logits = self.temperature_scale(torch_logits)
         rescaled_probs = F.softmax(torch_logits, dim=-1).detach().cpu().numpy()
