@@ -62,7 +62,7 @@ class TempScaling:
             assert (
                 num_label is not None
             ), "num_label must be specified when bias is True"
-            self.bias = nn.Parameter(torch.rand(num_label).to(device))
+            self.bias = nn.Parameter((torch.rand(num_label) * 2.0 - 1.0).to(device))
 
             # self.bias = nn.Parameter(torch.ones(
             #     num_label).to(device) * .0)
@@ -179,7 +179,7 @@ class VectorScaling:
             self.device = torch.device("cpu")
 
         self.temperature = nn.Parameter(torch.ones(num_label).to(self.device) * 1.5)
-        self.bias = nn.Parameter(torch.rand(num_label).to(device))
+        self.bias = nn.Parameter((torch.rand(num_label) * 2.0 - 1.0).to(device))
 
         # self.bias = nn.Parameter(torch.ones(num_label).to(
         #     self.device) * 0.0) if bias else None
