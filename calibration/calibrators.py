@@ -133,6 +133,7 @@ class TempScaling:
 
         run = True
         count = 0
+
         while run:
             while np.abs(loss - new_loss) > 1e-4:
                 loss = new_loss
@@ -160,6 +161,8 @@ class TempScaling:
 
             if count > 100:
                 run = False
+
+        print(count)
 
         torch_logits = self.temperature_scale(torch_logits)
         rescaled_probs = F.softmax(torch_logits, dim=-1).detach().cpu().numpy()
