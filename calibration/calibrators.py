@@ -132,7 +132,7 @@ class TempScaling:
         # Check none values in self.bias
 
         run = True
-
+        count = 0
         while run:
             while np.abs(loss - new_loss) > 1e-4:
                 loss = new_loss
@@ -154,7 +154,11 @@ class TempScaling:
                         (torch.rand(self.num_label) * 2.0 - 1.0).to(self.device)
                     )
                 run = True
+                count += 1
             else:
+                run = False
+
+            if count > 10:
                 run = False
 
         torch_logits = self.temperature_scale(torch_logits)
